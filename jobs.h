@@ -2,7 +2,7 @@
 #include <string.h>
 
 typedef struct {
-    char* job_name;
+    char* job_name; //TODO: dynamic allocation of pointed memory
     int pid;
     int start_time;
     int suspended;

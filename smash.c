@@ -13,6 +13,7 @@ main file. This file contains the main function of smash
 #define MAX_LINE_SIZE 80
 #define MAXARGS 20
 
+job cur_job;
 char* L_Fg_Cmd;
 Plist* jobs;  //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
 char lineSize[MAX_LINE_SIZE]; 
@@ -47,8 +48,8 @@ int main(int argc, char *argv[])
 
 	/************************************/
 	// Init globals 
-    
-    jobs = init_list();
+    init_job(&cur_job); 
+    init_list(&jobs);
 	
 	L_Fg_Cmd =(char*)malloc(sizeof(char)*(MAX_LINE_SIZE+1));
 	if (L_Fg_Cmd == NULL) 
@@ -72,6 +73,7 @@ int main(int argc, char *argv[])
 		lineSize[0]='\0';
 		cmdString[0]='\0';
 	}
+    free (L_Fg_Cmd);
     kill_list(jobs);
     return 0;
 }

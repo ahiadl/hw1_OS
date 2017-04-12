@@ -86,7 +86,7 @@ void align_idx(Plist list){
     while(cur_node != NULL) 
 }
 
-int remove_job(Plist list, int pid){
+int remove_job(Plist list, int pid){ //TODO: check if pid correct
     nil rm_node = find_node(list, pid);
     nil.prev_node->next=nil.next_node;
     free(nil.cur_node->job);
@@ -109,6 +109,9 @@ Pjob get_last_suspended(Plist list){
     else return cur_job;
 }
 
+Pjob get_last_job (Plist list){};
+
+
 void print_jobs(jobs_list* list){
     int idx = 1;
     Pjob cur_job;
@@ -120,8 +123,7 @@ void print_jobs(jobs_list* list){
     }
 }
 
-Plist init_list(){
-    Plist list = (Plist) malloc (sizeof(list));
+void init_list(Plist list){
     list->num_of_jobs = 0;
     list->first_node  = NULL;
     list->last_node   = NULL;
