@@ -4,8 +4,8 @@
 #define max_history 50
 
 //global varibles : // need-to : maybe it's better to pass it as argument to ExeCmd ? 
-int last_suspended_pid = NULL ;  
-
+int last_suspended_pid;  
+extern Pjob cur_job; 
 
 //********************************************
 // function name: ExeCmd
@@ -321,7 +321,7 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
    		
 	} 
 	/*************************************************/
-	else // external command
+	else if (!bgcmd)// external command
 	{
  		ExeExternal(args, cmdString);
 	 	return 0;
@@ -343,23 +343,23 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 {
 	int pID;
     	switch(pID = fork()) 
-	{
+	    {
     		case -1: 
 					// Add your code here (error)
-					
-					/* 
-					your code
-					*/
+			        exit();
+                    break;
         	case 0 :
                 	// Child Process
                		setpgrp();
-                    
-                    exec(cmdString);
-			
+                    exec(" ",cmdString);
+                    break;
 			default:
-                    cur_job->pid = pID;
-                    waitpid(pID,NULL,0);//TODO: think of configurations
-	}
+                    int status;
+                    //TODO: insert process to fg job;
+                    waitpid(pID, &status, (WUNTRACED | WNOHANG));
+                    if (TRUE == WIFEXITED(status)) reset_job(cur_job); //if process ended normally change fg job to null
+                    break;
+	    }
 }
 //**************************************************************************************
 // function name: ExeComp
@@ -389,21 +389,38 @@ int ExeComp(char* lineSize)
 // Parameters: command string, pointer to jobs
 // Returns: 0- BG command -1- if not
 //**************************************************************************************
-int BgCmd(char* lineSize, void* jobs)
+int BgCmd(char* lineSize, Plist jobs)
 {
 
 	char* Command;
 	char* delimiters = " \t\n";
 	char *args[MAX_ARG];
+    bgcmd = 1;
 	if (lineSize[strlen(lineSize)-2] == '&')
 	{
 		lineSize[strlen(lineSize)-2] = '\0';
-		// Add your code here (execute a in the background)
-					
-		/* 
-		your code
-		*/
-		
+        
+        
+        int pID;
+        switch(pID = fork())
+        {
+            case -1:
+                // Add your code here (error)
+                exit();
+                break;
+            case 0 :
+                // Child Process
+                setpgrp();
+                if(!ExeComp()) exit();
+                if(!exeCmd()) exit;
+                exec(cmd);
+                break;
+            default:
+                int status;
+                fill_job_params(cur_job, cmdString, pID, jobs->num_of_jobs+1, 0, DONT_UPDATE);
+                if (TRUE == WIFEXITED(status)) reset_job(cur_job); //if process ended normally change fg job to null
+                break;
+        }
 	}
 	return -1;
 }

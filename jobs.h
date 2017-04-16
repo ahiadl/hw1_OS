@@ -11,7 +11,7 @@ typedef struct {
 
 typedef struct {
     node* next;
-    job_elem* job;
+    Pjob* job_elem;
 }node, *Pnode;
 
 typedef struct {
@@ -41,10 +41,25 @@ enum{
     SUSPENDED = 1,
 };
 
-void print_jobs(jobs_list* list);
-Pjob get_last_suspended (jpbs_list* jobs);
-Pjob find_job_by_idx(jobs_list* jobs);
-Pjob find_job_by_pid(jobs_list *jobs);
-int remove_job (jobs_list* jobs, int pid);
-int add_job (job_list* jobs, string name, int pid, int time);
-Plist init_list ();
+enum{
+    DONT_UPDATE,
+    UPDATE,
+}
+
+
+
+Pjob find_job_by_idx(Plist list_inst, int idx);
+Pjob find_job_by_pid(Plist list_inst, int pid);
+Pnil find_node(Plist list_inst, int pid);
+void reset_job (Pjob job_inst);
+Pjob init_job (int name_length);
+Pjob init_node ();
+void add_job(Plist list_inst, char* name, int pid);
+void align_idx(Plist list_inst);
+int remove_job(Plist list_inst, int pid);
+Pjob get_last_suspended(Plist list_inst);
+Pjob get_last_job (Plist list_inst);
+void print_jobs(jobs_list* list_inst);
+Plist init_list();
+Void destroy_list(Plist list_inst);
+
