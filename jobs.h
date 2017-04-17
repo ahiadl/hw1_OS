@@ -9,14 +9,14 @@ typedef struct {
     int idx;
 }job, *Pjob;
 
-typedef struct {
-    node* next;
-    Pjob* job_elem;
+typedef struct node{
+    struct node* next;
+    Pjob job_elem;
 }node, *Pnode;
 
 typedef struct {
-    node* first_node;
-    node* last_node;
+    Pnode first_node;
+    Pnode last_node;
     int num_of_jobs;
 }list,*Plist;
  
@@ -34,7 +34,7 @@ typedef struct {
     Pnode prev_node;
     Pnode cur_node;
     Pnode next_node;
-}nil, Pnil; //nil = node in list
+}nil, *Pnil; //nil = node in list
 
 enum{
     ACTIVE    = 0,

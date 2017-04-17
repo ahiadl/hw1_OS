@@ -5,7 +5,7 @@
 #include "stdlib.h"
 
 Pjob find_job_by_idx(Plist list_inst, int idx){
-    if (list_inst->first_node = NULL) return;
+    if (list_inst->first_node = NULL) return NULL;
     nil nodes; 
     nodes.cur_node = list_inst->first_node;
     nodes.prev_node = NULL;
