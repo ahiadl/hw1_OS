@@ -475,6 +475,7 @@ int BgCmd(char* lineSize, Plist jobs)
 		return 0;
                 break;
         }
+    }
 	return -1;
 }
 

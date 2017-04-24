@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <string.h>
+#include "time.h"
 //test
 
 typedef struct {
     char* job_name; //TODO: dynamic allocation of pointed memory
     int pid;
-    int start_time;
+    time_t start_time;
     int suspended;
     int idx;
 }job, *Pjob;
@@ -52,8 +53,8 @@ Pjob find_job_by_pid(Plist list_inst, int pid);
 nil find_node(Plist list_inst, int pid);
 void reset_job (Pjob job_inst);
 Pjob init_job (int name_length);
-Pjob init_node ();
-void add_job(Plist list_inst, char* name, int pid);
+Pnode init_node ();
+void add_job(Plist list_inst, char* name, int pid, int suspended);
 void align_idx(Plist list_inst);
 int remove_job(Plist list_inst, int pid);
 Pjob get_last_suspended(Plist list_inst);
@@ -61,4 +62,4 @@ Pjob get_last_job (Plist list_inst);
 void print_jobs(Plist list_inst);
 Plist init_list();
 void destroy_list(Plist list_inst);
-
+void fill_job_params(Pjob new_job, char* name, int pid, int idx, int suspended, int user_time, int update_time);
