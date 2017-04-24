@@ -99,7 +99,8 @@ void fill_job_params(Pjob new_job, char* name, int pid, int idx, int suspended, 
 }
 
 void add_job(Plist list_inst, char* name, int pid, int suspended){
-    //allocating dynamic memory 
+    //allocating dynamic memory
+    printf("adding job to list"); 
     Pnode new_node = init_node();
     Pjob new_job = init_job(strlen(name));
     //positioning and linking
@@ -107,6 +108,8 @@ void add_job(Plist list_inst, char* name, int pid, int suspended){
     new_node->job_elem = new_job;
     list_inst->last_node->next = new_node;
     list_inst->last_node = new_node;
+    printf("done allocating memory and adding to list starting filling params\n");
+    printf("params: name: %s pid: %d suspended: %d\n", name, pid, suspended);
     //fill params 
     fill_job_params(new_job, name, pid, list_inst->num_of_jobs+1,suspended,0,UPDATE);
 }
@@ -156,7 +159,8 @@ Pjob get_last_job (Plist list_inst){
 void print_jobs(Plist list_inst){
     int idx = 1;
     Pjob cur_job;
-    while (idx>list_inst->num_of_jobs){
+    if (list_inst->num_of_jobs == 0) return;
+    while (idx < list_inst->num_of_jobs){
         cur_job = find_job_by_idx(list_inst, idx);
         if (SUSPENDED == cur_job->suspended) printf ("[%d] %s %d %ld secs (Stopped)\n",cur_job->idx, cur_job->job_name, cur_job->pid, (time(NULL) - cur_job->start_time));
         else printf ("[%d] %s %d %ld secs\n",cur_job->idx, cur_job->job_name, cur_job->pid, (time(NULL) - cur_job->start_time));
@@ -165,11 +169,11 @@ void print_jobs(Plist list_inst){
 }
 
 Plist init_list(){
-    Plist list_temp = (Plist)malloc(sizeof(list));
-    list_temp->num_of_jobs = 0;
-    list_temp->first_node  = NULL;
-    list_temp->last_node   = NULL;
-    return list_temp; 
+    Plist list_inst = (Plist)malloc(sizeof(list));
+    list_inst->num_of_jobs = 0;
+    list_inst->first_node  = NULL;
+    list_inst->last_node   = NULL;
+    return list_inst;
 }
 
 void destroy_list(Plist list_inst){
@@ -184,57 +188,3 @@ void destroy_list(Plist list_inst){
 }
 
 
-
-
-
-
-
-
-
-
-
-
-/*
-int set_name (job_elem* job,  jobs_str* jobs, string job_name, int get_set_,string value){
-        job_elem job = find_job (jobs_str* jobs, string job_name);
-        if(get_set_ = GET){
-            return job->start_time;
-        }else if (get_set_ = SET){
-           job->start_time = value;
-           return SUCCESS;
-        }
-        return FAILURE;
-}*/
-
-/*
-void reset_job (Pjob_elem job){
-    job->pid = 0;
-    job->start_time = 0; 
-    job->name = "/0";
-    job->
-}*/
-/*
-void reset_node (Pnode list_node){
-    list_node->next = NULL;
-    reset_job (list_node->job);
-}*/
-/*int set_get_pid (jobs_str* jobs, string job_name, int get_set_,int value){
-    job_elem job = find_job (jobs_str* jobs, string job_name);
-    if( get_set_ = GET){
-        return job->pid;
-    } else if (get_set_ = SET){
-        job->pid = value;
-        return SUCCESS;
-    }
-    return FAILURE;
-}*/
-/*int set_get_start_time (job_elem* job,  jobs_str* jobs, string job_name, int get_set_,int value){
-        job_elem job = find_job (jobs_str* jobs, string job_name);
-        if(get_set_ = GET){
-            return job->start_time;
-        }else if (get_set_ = SET){
-           job->start_time = value;
-           return SUCCESS;
-        }
-        return FAILURE;
-}*/

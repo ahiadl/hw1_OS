@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 	/************************************/
 	// Init globals 
     reset_job(&cur_job); 
-    init_list(jobs);
+    jobs = init_list();
 	
 	L_Fg_Cmd =(char*)malloc(sizeof(char)*(MAX_LINE_SIZE+1));
 	if (L_Fg_Cmd == NULL) 
