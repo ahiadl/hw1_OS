@@ -5,7 +5,7 @@
 #include "stdlib.h"
 
 Pjob find_job_by_idx(Plist list_inst, int idx){
-    if (list_inst->first_node = NULL) return NULL;
+    if (list_inst->first_node == NULL) return NULL;
     nil nodes; 
     nodes.cur_node = list_inst->first_node;
     nodes.prev_node = NULL;
@@ -22,7 +22,7 @@ Pjob find_job_by_idx(Plist list_inst, int idx){
 }
 
 Pjob find_job_by_pid(Plist list_inst, int pid){
-    if (list_inst->first_node = NULL) return;
+    if (list_inst->first_node == NULL) return NULL;
     nil nodes; 
     nodes.cur_node = list_inst->first_node;
     nodes.prev_node = NULL;
@@ -38,11 +38,13 @@ Pjob find_job_by_pid(Plist list_inst, int pid){
     else return nodes.cur_node->job_elem;
 }
 
-Pnil find_node(Plist list_inst, int pid){
-    if (list_inst->first_node = NULL) return;
+nil find_node(Plist list_inst, int pid){
     nil nodes; 
-    nodes.cur_node = list_inst->first_node;
+    nodes.cur_node  = NULL; 
     nodes.prev_node = NULL;
+    nodes.next_node = NULL;
+    if (list_inst->first_node == NULL) return nodes;
+    nodes.cur_node = list_inst->first_node;
     nodes.next_node = nodes.cur_node->next;
     int found = (pid == nodes.cur_node->job_elem->pid);
     while(!found && (nodes.cur_node != NULL)) {
@@ -158,7 +160,7 @@ Plist init_list(){
     return ; 
 }
 
-Void destroy_list(Plist list_inst){
+void destroy_list(Plist list_inst){
     int i = 1;
     int pid;
     Pjob cur_job;

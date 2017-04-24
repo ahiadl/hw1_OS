@@ -44,13 +44,11 @@ enum{
 enum{
     DONT_UPDATE,
     UPDATE,
-}
-
-
+};
 
 Pjob find_job_by_idx(Plist list_inst, int idx);
 Pjob find_job_by_pid(Plist list_inst, int pid);
-Pnil find_node(Plist list_inst, int pid);
+nil find_node(Plist list_inst, int pid);
 void reset_job (Pjob job_inst);
 Pjob init_job (int name_length);
 Pjob init_node ();
@@ -59,7 +57,7 @@ void align_idx(Plist list_inst);
 int remove_job(Plist list_inst, int pid);
 Pjob get_last_suspended(Plist list_inst);
 Pjob get_last_job (Plist list_inst);
-void print_jobs(jobs_list* list_inst);
+void print_jobs(Plist list_inst);
 Plist init_list();
-Void destroy_list(Plist list_inst);
+void destroy_list(Plist list_inst);
 

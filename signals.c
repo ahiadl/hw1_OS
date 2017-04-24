@@ -5,7 +5,9 @@
 /*******************************************/
 /* Name: handler_cntlc
    Synopsis: handle the Control-C */
+#include "jobs.h"
 #include "signals.h"
+
 extern Pjob cur_job;
 extern Plist jobs;
 

@@ -1,5 +1,6 @@
 //		commands.c
 //********************************************
+#include "jobs.h"
 #include "commands.h"
 #define max_history 50
 #define max_args 80

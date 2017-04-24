@@ -8,9 +8,9 @@ main file. This file contains the main function of smash
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include "jobs.h"
 #include "commands.h"
 #include "signals.h"
-#include "jobs.h"
 #define MAX_LINE_SIZE 80
 #define MAXARGS 20
 
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
 	/************************************/
 	// Init globals 
-    init_job(&cur_job); 
+    reset_job(&cur_job); 
     init_list(&jobs);
 	
 	L_Fg_Cmd =(char*)malloc(sizeof(char)*(MAX_LINE_SIZE+1));
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 		cmdString[0]='\0';
 	}
     free (L_Fg_Cmd);
-    kill_list(jobs);
+    destroy_list(&jobs);
     return 0;
 }
 

@@ -9,6 +9,8 @@
 #include <signal.h>
 
 
+void handler_ctrlc();
+void handler_ctrlz(); 
 
 #endif
 
