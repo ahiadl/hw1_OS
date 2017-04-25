@@ -2,12 +2,13 @@
 #include <string.h>
 #include "time.h"
 //test
-
+#define DEBUG 0
 typedef struct {
     char* job_name; //TODO: dynamic allocation of pointed memory
     int pid;
     time_t start_time;
     int suspended;
+    int bg_fg;
     int idx;
 }job, *Pjob;
 
@@ -25,6 +26,11 @@ typedef struct {
 enum {
    GET,
    SET,
+};
+
+enum {
+    FG = 0,
+    BG = 1,
 };
 
 enum {
@@ -63,3 +69,7 @@ void print_jobs(Plist list_inst);
 Plist init_list();
 void destroy_list(Plist list_inst);
 void fill_job_params(Pjob new_job, char* name, int pid, int idx, int suspended, int user_time, int update_time);
+void suspend_job_in_list (Plist list_inst, int idx);
+int get_fg_job_pid (Plist list_inst);
+void send_job_to_fg (Plist list_inst, int pid);
+void send_job_to_bg (Plist list_inst, int pid);

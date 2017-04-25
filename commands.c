@@ -18,7 +18,8 @@ char cd_prev[MAX_LINE_SIZE] ; // = NULL;
 extern Plist jobs ;
 
 int ExeCmd(Plist jobs, char* lineSize, char* cmdString) //one cmd per time
-{	
+{
+    if(DEBUG)printf("inside execmd\n");    
 	int job_pid = 0;
 	int job_num = 0;
 	char* cmd; 
@@ -330,7 +331,8 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 	} 
 	/*************************************************/
 	else // external command
-	{	 		
+	{	
+        if(DEBUG)printf("external cmd case\n");        
  		ExeExternal(args, cmdString);
 	 	return 0;
 	}
@@ -350,6 +352,7 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 void ExeExternal(char *args[MAX_ARG], char* cmdString) // todo: add the job to args 
 {
 	int pid;
+    if(DEBUG) printf("inside external exe\n");
     	switch(pid = fork()) 
 	{
     		case -1: 
@@ -361,11 +364,13 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString) // todo: add the job to a
 					/*execute the command using the c shell
 					-p Uses the PATH environment variable to find the file named in the file argument to be executed 
 					--execvp return value is -1 and errno just in case of failure ,never return in success*/
+                    if(DEBUG) printf("inside child \n");
 					execvp(args[0], &cmdString);  // execute
 					perror("smash error: > execvp failed");
 					break;
 			        
 			default:
+                if(DEBUG)printf("inside father\n");
                 add_job(jobs, cmdString, pid, ACTIVE) ;
 				waitpid(pid, NULL, WUNTRACED);
 				

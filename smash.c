@@ -50,7 +50,8 @@ int main(int argc, char *argv[])
 	// Init globals 
     reset_job(&cur_job); 
     jobs = init_list();
-	
+    add_job(jobs, "test", 100, ACTIVE);
+    send_job_to_bg(jobs, 100);
 	L_Fg_Cmd =(char*)malloc(sizeof(char)*(MAX_LINE_SIZE+1));
 	if (L_Fg_Cmd == NULL) 
 			exit (-1); 

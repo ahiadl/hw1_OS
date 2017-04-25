@@ -21,12 +21,12 @@ void handler_ctrlc() {
 }
 
 void handler_ctrlz() {
-    if (cur_job.pid !=0){
-        kill (cur_job.pid,SIGTSTP);
-        cur_job.suspended = SUSPENDED;
-        add_job(jobs, cur_job.job_name, cur_job.pid, cur_job.suspended);
+    int fg_job_pid = get_fg_job_pid(jobs);
+    if (fg_job_pid != 0){
+        kill (fg_job_pid,SIGTSTP);
+        suspend_job_in_list(jobs, fg_job_pid);
     }
-    printf("\n");
+    printf("inside handle\n");
 }
 
 
