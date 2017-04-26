@@ -472,11 +472,12 @@ int BgCmd(char* lineSize, Plist jobs)
 			case 0 : //child process
 				setpgrp ();
 				execvp ( args [ 0 ] , args );
-				perror("smash error: > failed to execute by execvp\n");	
+				perror("smash error: > failed to execute by execvp\n");
+                exit(1);    
 				break;
 			default :
-				
-				add_job(jobs, lineSize, pid, ACTIVE) ;  //without waitpid --its bg cmd
+				add_job(jobs, lineSize, pid, ACTIVE) ;  //without waitpid --its bg cmdi
+                send_job_to_bg(jobs, pid);                
 				return 0 ; 
 	
 		}

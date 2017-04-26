@@ -36,8 +36,8 @@ void handler_ctrlz() {
 void handler_chld(){
     int jobs_num = jobs->num_of_jobs;
     int cur_job_idx = 0;
-    //int return_pid;
-    //int status;
+    int return_pid;
+    int status;
     Pjob cur_job;
     if(DEBUG)printf("inside child signal handler\n");
     for (cur_job_idx = 1; cur_job_idx <= jobs_num; cur_job_idx++){
@@ -45,34 +45,59 @@ void handler_chld(){
          if (cur_job == NULL) break;
          if(DEBUG) print_job(cur_job);
          if(-1 == kill(cur_job->pid,0)) remove_job(jobs, cur_job->pid);
+          return_pid = waitpid (cur_job->pid, &status, WNOHANG|WUNTRACED|WCONTINUED);     
+          if      (WIFSTOPPED(status)){                                                   
+              if(DEBUG) printf("Stopped Child \n");                                       
+              suspend_job_in_list(jobs, cur_job->pid, SUSPENDED);                         
+          }                                                                               
+          else if (WIFCONTINUED(status)){                                                 
+             if(DEBUG) printf("Stopped Continued \n");                                    
+              suspend_job_in_list(jobs, cur_job->pid, ACTIVE);                            
+          }                                                                               
+          else if (WIFEXITED(status)){                                                    
+             switch(return_pid){                                                          
+                case -1:                                                                  
+                     printf("error with waitpid\n");                                      
+                     break;                                                               
+                case 0 :                                                                  
+                     if(DEBUG) printf("process %d is still running\n",cur_job->pid);      
+                     break;                                                               
+                 default:                                                                 
+                     if (DEBUG) printf("removing process: %d from list", cur_job->pid);   
+                     remove_job(jobs, cur_job->pid);                                      
+                     cur_job_idx--;                                                       
+                     jobs_num = jobs->num_of_jobs;                                        
+                     break;                                                               
+             }                                                                            
+         }                                                                              
     }
 }
 
 
 
 
-         /*return_pid = waitpid (cur_job->pid, &status, WNOHANG|WUNTRACED|WCONTINUED);
-         if      (WIFSTOPPED(status)){
-             if(DEBUG) printf("Stopped Child \n");
-             suspend_job_in_list(jobs, cur_job->pid, SUSPENDED);
-         }
-         else if (WIFCONTINUED(status)){
-            if(DEBUG) printf("Stopped Continued \n");
-             suspend_job_in_list(jobs, cur_job->pid, ACTIVE);
-         }
-         else if (WIFEXITED(status)){
-            switch(return_pid){
-               case -1:
-                    printf("error with waitpid\n");
-                    break;
-               case 0 :
-                    if(DEBUG) printf("process %d is still running\n",cur_job->pid); 
-                    break;
-                default:
-                    if (DEBUG) printf("removing process: %d from list", cur_job->pid);
-                    remove_job(jobs, cur_job->pid);
-                    cur_job_idx--;
-                    jobs_num = jobs->num_of_jobs;
-                    break;
-            }
-        }*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
