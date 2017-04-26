@@ -26,7 +26,9 @@ void handler_ctrlz() {
     int fg_job_pid = get_fg_job_pid(jobs);
     if (fg_job_pid != 0){
         printf ("fg job pid :%d\n",fg_job_pid);
-        kill (fg_job_pid, SIGTSTP);
+        int status = kill(fg_job_pid, SIGTSTP);
+        printf("status: %d\n", status);
+        if(status != 0) printf("failed to send signal  sigstp\n");
         send_job_to_bg(jobs, fg_job_pid);
         suspend_job_in_list(jobs, fg_job_pid, SUSPENDED);
     }
@@ -44,7 +46,7 @@ void handler_chld(){
          cur_job = find_job_by_idx(jobs, cur_job_idx);
          if (cur_job == NULL) break;
          if(DEBUG) print_job(cur_job);
-         if(-1 == kill(cur_job->pid,0)) remove_job(jobs, cur_job->pid);
+         
           return_pid = waitpid (cur_job->pid, &status, WNOHANG|WUNTRACED|WCONTINUED);     
           if      (WIFSTOPPED(status)){                                                   
               if(DEBUG) printf("Stopped Child \n");                                       
@@ -57,8 +59,6 @@ void handler_chld(){
           else if (WIFEXITED(status)){                                                    
              switch(return_pid){                                                          
                 case -1:                                                                  
-                     printf("error with waitpid\n");                                      
-                     break;                                                               
                 case 0 :                                                                  
                      if(DEBUG) printf("process %d is still running\n",cur_job->pid);      
                      break;                                                               
@@ -69,7 +69,8 @@ void handler_chld(){
                      jobs_num = jobs->num_of_jobs;                                        
                      break;                                                               
              }                                                                            
-         }                                                                              
+         }
+         if(0 != kill(cur_job->pid,0)) remove_job(jobs, cur_job->pid);                                                                              
     }
 }
 

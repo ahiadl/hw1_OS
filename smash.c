@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
     int_signal.sa_handler = handler_ctrlc;
     stp_signal.sa_handler = handler_ctrlz;
     chld_signal.sa_handler = handler_chld;
+    chld_signal.sa_flags = SA_NOCLDSTOP;
 
 	/************************************/
 	//NOTE: the signal handlers and the function/s that sets the handler should be found in siganls.c
@@ -44,9 +45,9 @@ int main(int argc, char *argv[])
 
 	/************************************/
     
-    sigaction(SIGINT,  &int_signal, NULL);
-    sigaction(SIGTSTP, &stp_signal, NULL);
-    sigaction(SIGCHLD, &chld_signal,NULL);
+    sigaction(SIGINT,  &int_signal,  NULL);
+    sigaction(SIGTSTP, &stp_signal,  NULL);
+    sigaction(SIGCHLD, &chld_signal, NULL);
 
 	/************************************/
 	// Init globals 

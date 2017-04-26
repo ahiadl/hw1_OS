@@ -50,7 +50,7 @@ nil find_node(Plist list_inst, int pid){
     nil nodes;
     int found = 0;
 
-    if(DEBUG) printf("inside find node\n");
+    //if(DEBUG) printf("inside find node\n");
 
     if (list_inst->first_node == NULL){
         nodes.cur_node  = NULL;
@@ -58,11 +58,11 @@ nil find_node(Plist list_inst, int pid){
         nodes.next_node = NULL;
         return nodes;
     }else{
-        if(DEBUG) printf("inside else\n");
+        //if(DEBUG) printf("inside else\n");
         nodes.cur_node  = list_inst->first_node;
         nodes.prev_node = NULL;
         nodes.next_node = nodes.cur_node->next;
-        if(DEBUG) printf("Done Init nodes\n"); 
+        //if(DEBUG) printf("Done Init nodes\n"); 
         while(!found && (nodes.cur_node != NULL)) {
             //if(DEBUG) print_job(nodes.cur_node->job_elem);
             found = (pid == nodes.cur_node->job_elem->pid);
@@ -119,7 +119,7 @@ void fill_job_params(Pjob new_job, char* name, int pid, int idx, int suspended, 
 
 void add_job(Plist list_inst, char* name, int pid, int suspended){
     //allocating dynamic memory
-    if(DEBUG) printf("adding job to list\n"); 
+    //if(DEBUG) printf("adding job to list\n"); 
     Pnode new_node = init_node();
     Pjob  new_job  = init_job(strlen(name));
     //positioning and linking
@@ -130,6 +130,7 @@ void add_job(Plist list_inst, char* name, int pid, int suspended){
         list_inst->first_node = new_node;
     }
     else list_inst->last_node->next = new_node;
+    list_inst->last_node = new_node; 
     list_inst->num_of_jobs = list_inst->num_of_jobs + 1; 
     //if(DEBUG)printf("done allocating memory and adding to list starting filling params\n");
     //if(DEBUG)printf("params: name: %s pid: %d suspended: %d\n", name, pid, suspended);
@@ -241,7 +242,7 @@ void destroy_list(Plist list_inst){
 void suspend_job_in_list (Plist list_inst, int pid, int act_sus){
     //if(DEBUG) printf("inside_suspended\n");
     Pjob job_inst = find_job_by_pid(list_inst, pid);
-    job_inst->suspended =act_sus;
+    if(job_inst != NULL)job_inst->suspended =act_sus;
 }
 
 void send_job_to_bg (Plist list_inst, int pid){
@@ -254,21 +255,22 @@ void send_job_to_fg (Plist list_inst, int pid){
     job_inst->bg_fg = FG;
 }
 
-
 int get_fg_job_pid (Plist list_inst){
        if (list_inst->first_node == NULL) return 0;
        nil nodes; 
+       int found;
        nodes.cur_node = list_inst->first_node;
        nodes.prev_node = NULL;
        nodes.next_node = nodes.cur_node->next;
-       int found = (FG == nodes.cur_node->job_elem->bg_fg);
        while(!found && (nodes.cur_node != NULL)) {
+           found = (FG == nodes.cur_node->job_elem->bg_fg);
+           if(found) continue;
            nodes.prev_node = nodes.cur_node;
            nodes.cur_node  = nodes.cur_node->next;
-           nodes.next_node = nodes.cur_node->next;
-           found = (FG == nodes.cur_node->job_elem->bg_fg);
+           if(nodes.cur_node != NULL) nodes.next_node = nodes.cur_node->next;
+           
        }
        if (nodes.cur_node == NULL) return 0;
        else return nodes.cur_node->job_elem->pid;
    }
- 
+

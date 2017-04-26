@@ -182,7 +182,7 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 				if(kill(job_pid , SIGCONT) == 0) 
 				{
 					printf("smash > signal SIGCONT was sent to pid %d/n" , job_pid);
-					remove_job(jobs ,job_pid);
+                    waitpid (job_pid, NULL, WUNTRACED); 
 					return 0 ; 
 				}
 			}
@@ -200,11 +200,14 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 			printf("%s" , job->job_name);
 			job_pid = job->pid ;
 			
-			if(kill(job_pid , SIGCONT) == 0)
+            sleep(1);
+
+			if(kill(job_pid, SIGCONT) == 0)
 			{
-				printf("smash > signal SIGCONT was sent to pid %d" , job_pid);
-				waitpid ( job_pid, NULL, WUNTRACED);  // todo: change it according to external 
-				remove_job(jobs, job_pid);
+				printf("smash > signal SIGCONT was sent to pid %d - correct place \n" , job_pid);
+                waitpid (job_pid, NULL, WNOHANG);
+				waitpid (job_pid, NULL, WUNTRACED);  // todo: change it according to external
+                return 0; 
 			}
 		}
 		
@@ -231,7 +234,6 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 				if(kill(job_pid , SIGCONT) == 0)
 				{
 					printf("smash > signal SIGCONT was sent to pid %d" , job_pid); 
-					remove_job(jobs, job_pid);
 					return 0 ; 
 				}
 				else 
@@ -257,7 +259,6 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 			if(kill(job_pid , SIGCONT) == 0)
 			{
 				printf("smash > signal SIGCONT was sent to pid %d" , job_pid);
-				remove_job(jobs,  job_pid);
 				return 0 ; 
 			}
 			else
@@ -312,7 +313,6 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 		{	
 			//converting the signal number exclude the "-" to int // same for the job number; 
 			int sig_num = atoi(strtok(args [1], "-" )) ; 
-			if(DEBUG)printf ("\nsignum is %d ***command.c-kill*** debug\n",sig_num); //debug
 			job_num = atoi(args [1]) ;
 			
 			if ( (job_num > (jobs -> num_of_jobs)) || job_num < 1)       //need-to : verify num_of_jobs method in "jobs" list
