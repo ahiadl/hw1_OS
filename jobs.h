@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 #include "time.h"
-//test
-#define DEBUG 0
+
+#define DEBUG 1 
+
 typedef struct {
     char* job_name; //TODO: dynamic allocation of pointed memory
     int pid;
@@ -42,7 +43,7 @@ typedef struct {
     Pnode prev_node;
     Pnode cur_node;
     Pnode next_node;
-}nil, *Pnil; //nil = node in list
+}nil, *Pnil; //nil = node in list, describes the position of the node in the list
 
 enum{
     ACTIVE    = 0,
@@ -69,7 +70,8 @@ void print_jobs(Plist list_inst);
 Plist init_list();
 void destroy_list(Plist list_inst);
 void fill_job_params(Pjob new_job, char* name, int pid, int idx, int suspended, int user_time, int update_time);
-void suspend_job_in_list (Plist list_inst, int idx);
+void suspend_job_in_list (Plist list_inst, int idx, int act_sus);
 int get_fg_job_pid (Plist list_inst);
 void send_job_to_fg (Plist list_inst, int pid);
 void send_job_to_bg (Plist list_inst, int pid);
+void print_job (Pjob job_inst);

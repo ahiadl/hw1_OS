@@ -11,6 +11,6 @@
 
 void handler_ctrlc();
 void handler_ctrlz(); 
-
+void handler_chld();
 #endif
 

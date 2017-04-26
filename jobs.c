@@ -6,21 +6,23 @@
 
 nil nil_global;
 
+
 Pjob find_job_by_idx(Plist list_inst, int idx){
-    printf("inside find job by idx: %d\n", idx);
     if (list_inst->first_node == NULL) return NULL;
-    printf("we have some jobs to scan\n");
     nil nodes; 
+    int found = 0;
     nodes.cur_node = list_inst->first_node;
     nodes.prev_node = NULL;
     nodes.next_node = nodes.cur_node->next;
-    int found = (idx == nodes.cur_node->job_elem->idx);
-    printf("first has %d found\n", found);
     while(!found && (nodes.cur_node != NULL)) {
+        //if(DEBUG) printf("start scaning loop, current job:\n");
+        //if(DEBUG) print_job(nodes.cur_node->job_elem);
+        
+        found = (idx == nodes.cur_node->job_elem->idx);
+        if (found) continue;
         nodes.prev_node = nodes.cur_node;
         nodes.cur_node  = nodes.cur_node->next;
-        nodes.next_node = nodes.cur_node->next;
-        found = (idx == nodes.cur_node->job_elem->idx);
+        if(nodes.cur_node != NULL) nodes.next_node = nodes.cur_node->next;
     }
     if (nodes.cur_node == NULL) return NULL;
     else return nodes.cur_node->job_elem;
@@ -28,16 +30,17 @@ Pjob find_job_by_idx(Plist list_inst, int idx){
 
 Pjob find_job_by_pid(Plist list_inst, int pid){
     if (list_inst->first_node == NULL) return NULL;
-    nil nodes; 
+    nil nodes;
+    int found = 0;  
     nodes.cur_node = list_inst->first_node;
     nodes.prev_node = NULL;
     nodes.next_node = nodes.cur_node->next;
-    int found = (pid == nodes.cur_node->job_elem->pid);     
     while(!found && (nodes.cur_node != NULL)) {
+        found = (pid == nodes.cur_node->job_elem->pid);
+        if(found) continue;
         nodes.prev_node = nodes.cur_node;
         nodes.cur_node  = nodes.cur_node->next;
-        nodes.next_node = nodes.cur_node->next;
-        found = (pid == nodes.cur_node->job_elem->pid);    
+        if(nodes.cur_node != NULL) nodes.next_node = nodes.cur_node->next;
     }
     if (nodes.cur_node == NULL) return NULL;
     else return nodes.cur_node->job_elem;
@@ -45,27 +48,37 @@ Pjob find_job_by_pid(Plist list_inst, int pid){
 
 nil find_node(Plist list_inst, int pid){
     nil nodes;
+    int found = 0;
+
+    if(DEBUG) printf("inside find node\n");
+
     if (list_inst->first_node == NULL){
         nodes.cur_node  = NULL;
         nodes.prev_node = NULL;
         nodes.next_node = NULL;
         return nodes;
     }else{
+        if(DEBUG) printf("inside else\n");
         nodes.cur_node  = list_inst->first_node;
         nodes.prev_node = NULL;
         nodes.next_node = nodes.cur_node->next;
-        int found = (pid == nodes.cur_node->job_elem->pid);
+        if(DEBUG) printf("Done Init nodes\n"); 
         while(!found && (nodes.cur_node != NULL)) {
+            //if(DEBUG) print_job(nodes.cur_node->job_elem);
+            found = (pid == nodes.cur_node->job_elem->pid);
+            if(found) continue;
             nodes.prev_node = nodes.cur_node;
             nodes.cur_node  = nodes.cur_node->next;
-            nodes.next_node = nodes.cur_node->next;
-            found = (pid == nodes.cur_node->job_elem->pid);
+            if(nodes.cur_node != NULL) nodes.next_node = nodes.cur_node->next;
         }
-        if (nodes.cur_node == NULL){
+        
+        if (nodes.cur_node == NULL){ //in case no node suitable for this pid
+           if (DEBUG) printf("didn't found suitable nodei\n");
            nodes.cur_node  = NULL;
            nodes.prev_node = NULL;
            nodes.next_node = NULL;
         }
+        //else if(DEBUG) print_job(nodes.cur_node->job_elem);
         return nodes;
     }
 }
@@ -78,6 +91,7 @@ void reset_job (Pjob job_inst){
     job_inst->start_time = 0;   
     job_inst->bg_fg = FG; 
 }
+
 
 Pjob init_job (int name_length){
     Pjob job_temp = (Pjob)malloc(sizeof(job));
@@ -105,9 +119,9 @@ void fill_job_params(Pjob new_job, char* name, int pid, int idx, int suspended, 
 
 void add_job(Plist list_inst, char* name, int pid, int suspended){
     //allocating dynamic memory
-    if(DEBUG) printf("adding job to list"); 
+    if(DEBUG) printf("adding job to list\n"); 
     Pnode new_node = init_node();
-    Pjob new_job = init_job(strlen(name));
+    Pjob  new_job  = init_job(strlen(name));
     //positioning and linking
     new_node->next = NULL;
     new_node->job_elem = new_job;
@@ -116,9 +130,9 @@ void add_job(Plist list_inst, char* name, int pid, int suspended){
         list_inst->first_node = new_node;
     }
     else list_inst->last_node->next = new_node;
-    list_inst->num_of_jobs =list_inst->num_of_jobs + 1; 
-    if(DEBUG)printf("done allocating memory and adding to list starting filling params\n");
-    if(DEBUG)printf("params: name: %s pid: %d suspended: %d\n", name, pid, suspended);
+    list_inst->num_of_jobs = list_inst->num_of_jobs + 1; 
+    //if(DEBUG)printf("done allocating memory and adding to list starting filling params\n");
+    //if(DEBUG)printf("params: name: %s pid: %d suspended: %d\n", name, pid, suspended);
     //fill params 
     fill_job_params(new_job, name, pid, list_inst->num_of_jobs,suspended,0,UPDATE);
 }
@@ -126,7 +140,7 @@ void add_job(Plist list_inst, char* name, int pid, int suspended){
 void align_idx(Plist list_inst){
     if (list_inst->first_node == NULL) return;           
     Pnode cur_node = list_inst->first_node;
-    int i = 0;
+    int i = 1;
     do {
         cur_node->job_elem->idx = i;
         cur_node = cur_node->next;
@@ -137,13 +151,32 @@ void align_idx(Plist list_inst){
 
 int remove_job(Plist list_inst, int pid){ //TODO: check if pid correct
     nil nil_res = find_node(list_inst, pid);
-    if (nil_res.cur_node == NULL) return FAILURE;
-    nil_res.prev_node->next=nil_res.next_node;
+    //if(DEBUG) print_job(nil_res.cur_node->job_elem);
+    if (nil_res.cur_node == NULL){
+        if(DEBUG) printf("failed to find node\n");
+        return FAILURE;
+    }
+   /***************repairing the list **********************/ 
+    if(list_inst->num_of_jobs == 1 ){ //last job in list
+        list_inst->first_node = NULL;
+        list_inst->last_node  = NULL;
+    }else{ //last or first job in list
+        if(DEBUG) printf("going_to_remove: ");
+        if(DEBUG) print_job(nil_res.cur_node->job_elem);
+        if (nil_res.cur_node->job_elem->idx == 1)                                                              list_inst->first_node   = nil_res.next_node;
+        if (nil_res.cur_node->job_elem->idx == list_inst->num_of_jobs)                                         list_inst->last_node    = nil_res.prev_node;
+        if (nil_res.cur_node->job_elem->idx > 1 && nil_res.cur_node->job_elem->idx <= list_inst->num_of_jobs)  nil_res.prev_node->next = nil_res.next_node;
+    }
+    if(DEBUG) printf("going to remove: ");
+    if(DEBUG) print_job(nil_res.cur_node->job_elem);
+    /************releasing the memory**********************/
     free(nil_res.cur_node->job_elem->job_name);
     free(nil_res.cur_node->job_elem);
     free(nil_res.cur_node);
+
     align_idx(list_inst);
     list_inst->num_of_jobs--;
+    
     return SUCCESS;
 }
 
@@ -165,15 +198,23 @@ Pjob get_last_job (Plist list_inst){
     return list_inst->last_node->job_elem;
 }
 
+void print_job (Pjob job_inst){
+    if (job_inst == NULL) {
+        printf("nothing to print\n");
+        return;
+    }
+    if (SUSPENDED == job_inst->suspended) printf ("[%d] %s %d %ld secs (Stopped)\n",job_inst->idx, job_inst->job_name, job_inst->pid, (time(NULL) - job_inst->start_time));
+    else printf ("[%d] %s %d %ld secs\n",job_inst->idx, job_inst->job_name, job_inst->pid, (time(NULL) - job_inst->start_time));                                          
+}
+
 void print_jobs(Plist list_inst){
     int idx = 1;
     Pjob cur_job;
-    printf("inside print jobs, we have %d jobs to print\n", list_inst->num_of_jobs);
+    //if(DEBUG) printf("inside print jobs, we have %d jobs to print\n", list_inst->num_of_jobs);
     if (list_inst->num_of_jobs == 0) return;
     while (idx <= list_inst->num_of_jobs){
         cur_job = find_job_by_idx(list_inst, idx);
-        if (SUSPENDED == cur_job->suspended) printf ("[%d] %s %d %ld secs (Stopped)\n",cur_job->idx, cur_job->job_name, cur_job->pid, (time(NULL) - cur_job->start_time));
-        else printf ("[%d] %s %d %ld secs\n",cur_job->idx, cur_job->job_name, cur_job->pid, (time(NULL) - cur_job->start_time));
+        print_job(cur_job);
         idx++;
     }
 }
@@ -197,10 +238,10 @@ void destroy_list(Plist list_inst){
     free (list_inst);
 }
 
-void suspend_job_in_list (Plist list_inst, int pid){
-    printf("inside_suspended");
+void suspend_job_in_list (Plist list_inst, int pid, int act_sus){
+    //if(DEBUG) printf("inside_suspended\n");
     Pjob job_inst = find_job_by_pid(list_inst, pid);
-    job_inst->suspended = SUSPENDED;
+    job_inst->suspended =act_sus;
 }
 
 void send_job_to_bg (Plist list_inst, int pid){
@@ -230,4 +271,4 @@ int get_fg_job_pid (Plist list_inst){
        if (nodes.cur_node == NULL) return 0;
        else return nodes.cur_node->job_elem->pid;
    }
-   
+ 

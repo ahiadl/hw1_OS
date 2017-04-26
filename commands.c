@@ -16,10 +16,10 @@ int history_idx; // = 0 ;
 char history[max_history][max_args] ;//= {NULL};
 char cd_prev[MAX_LINE_SIZE] ; // = NULL;
 extern Plist jobs ;
+extern job fg_job;
 
 int ExeCmd(Plist jobs, char* lineSize, char* cmdString) //one cmd per time
-{
-    if(DEBUG)printf("inside execmd\n");    
+{	
 	int job_pid = 0;
 	int job_num = 0;
 	char* cmd; 
@@ -129,6 +129,7 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 		}
 		else 
 		{	
+			//printf("111");
 			print_jobs(jobs);
 		}
 	}
@@ -177,6 +178,7 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 			else
 			{ 
 				job_pid = job_elem->pid ;
+				send_job_to_fg(jobs , job_pid);
 				if(kill(job_pid , SIGCONT) == 0) 
 				{
 					printf("smash > signal SIGCONT was sent to pid %d/n" , job_pid);
@@ -225,6 +227,7 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 			else
 			{
 				job_pid = job->pid ;
+				send_job_to_bg(jobs , job_pid);
 				if(kill(job_pid , SIGCONT) == 0)
 				{
 					printf("smash > signal SIGCONT was sent to pid %d" , job_pid); 
@@ -309,6 +312,7 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 		{	
 			//converting the signal number exclude the "-" to int // same for the job number; 
 			int sig_num = atoi(strtok(args [1], "-" )) ; 
+			if(DEBUG)printf ("\nsignum is %d ***command.c-kill*** debug\n",sig_num); //debug
 			job_num = atoi(args [1]) ;
 			
 			if ( (job_num > (jobs -> num_of_jobs)) || job_num < 1)       //need-to : verify num_of_jobs method in "jobs" list
@@ -331,8 +335,7 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 	} 
 	/*************************************************/
 	else // external command
-	{	
-        if(DEBUG)printf("external cmd case\n");        
+	{	 		
  		ExeExternal(args, cmdString);
 	 	return 0;
 	}
@@ -349,10 +352,11 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 // Parameters: external command arguments, external command string
 // Returns: void
 //**************************************************************************************
-void ExeExternal(char *args[MAX_ARG], char* cmdString) // todo: add the job to args 
+void ExeExternal(char *args[MAX_ARG], char* cmdString) // todo: add the job to args
 {
+    int status; 
 	int pid;
-    if(DEBUG) printf("inside external exe\n");
+	//if(DEBUG)printf("external **** debug\n"); //debug
     	switch(pid = fork()) 
 	{
     		case -1: 
@@ -361,19 +365,16 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString) // todo: add the job to a
         	case 0 :
                 	// Child Process
                		setpgrp();
-					/*execute the command using the c shell
-					-p Uses the PATH environment variable to find the file named in the file argument to be executed 
-					--execvp return value is -1 and errno just in case of failure ,never return in success*/
-                    if(DEBUG) printf("inside child \n");
-					execvp(args[0], &cmdString);  // execute
+					execvp(args[0], args);  // execute
 					perror("smash error: > execvp failed");
+                    exit(1);
 					break;
 			        
 			default:
-                if(DEBUG)printf("inside father\n");
-                add_job(jobs, cmdString, pid, ACTIVE) ;
-				waitpid(pid, NULL, WUNTRACED);
-				
+                if(!kill(pid,0)) add_job(jobs, cmdString, pid, ACTIVE);               
+                waitpid(pid, &status, WUNTRACED);
+                
+
 	}
 }
 //**************************************************************************************
@@ -387,7 +388,7 @@ int ExeComp(Plist jobs,char* lineSize)
 	//history_idx = (history_idx + 1) % max_history ;
 	//history[max_args][history_idx] = lineSize;  //verify that line size contain the cmdString
     //strcpy(&history[0][history_idx],lineSize);
-	
+
 	//char ExtCmd[MAX_LINE_SIZE+2];
 	char *args[MAX_ARG];
 	int pid = 0;
@@ -395,6 +396,7 @@ int ExeComp(Plist jobs,char* lineSize)
 								|| (strstr(lineSize, "*")) || (strstr(lineSize, "?")) 
 								|| (strstr(lineSize, ">>")) || (strstr(lineSize, "|&")))
     {
+    	if(DEBUG)printf("comp **** debug\n"); //debug
 		switch (pid = fork())
 		{
 			case -1 : 
@@ -444,8 +446,10 @@ int BgCmd(char* lineSize, Plist jobs)
 	char* cmd;
 	char* delimiters = " \t\n";
 	char *args[MAX_ARG];
+
 	if (lineSize[strlen(lineSize)-2] == '&')
 	{
+		if(DEBUG)printf("bgcmd ****\n"); //debug
 		lineSize[strlen(lineSize)-2] = '\0';
 		int i = 0, num_arg = 0;
 		cmd = strtok(lineSize, delimiters);
