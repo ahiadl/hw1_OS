@@ -11,12 +11,11 @@
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
 
-//Globals : //todo :understand where i need to init this globals ?!
+//Globals :
 int history_idx; // = 0 ;
 char history[max_history][max_args] ;//= {NULL};
 char cd_prev[MAX_LINE_SIZE] ; // = NULL;
 extern Plist jobs ;
-extern job fg_job;
 
 int ExeCmd(Plist jobs, char* lineSize, char* cmdString) //one cmd per time
 {	
@@ -39,31 +38,7 @@ int ExeCmd(Plist jobs, char* lineSize, char* cmdString) //one cmd per time
 			num_arg++; 
  
 	}
-	
 
-//list method used: 
-//num_of_jobs - the number of all the jobs in the list. --int
-//job_num - needed index of the jobs in the list [1 , num_of_jobs]  -- starting by 1 !! 
-//cmd_name - for example "b.out"    -- (they call it command_number)
-//job_pid - string of the job pid;
-//suspended - indicate if the process is suspended.
-
-/*print_jobs(&jobs) - print all the jobs by the requsted format. -- return value void ? */
-
-/*get_last_suspended(&jobs) - return the node of relevent node ; -- return job element */
-
-/*find_job_by_idx(&jobs,job_num) - finding job by given job_num (implemented by iterators "for")
- -- return value is the ptr to node of the job -- return job element 
- -- example for use: 
-jobs *target_job_for_kill = find_job_by_idx(&jobs,job_num) ;
-int  pid_to_kill = target_job_for_kill -> job_pid ; */
-
-/*find_job_by_pid(&jobs,job_pid) - just like the function above but finding the node by pid */
-
-/*remove_job(job_pid) - remove job from the list -  todo:return 0 sucess  1 failed*/ 
-
-
- 
  /*************************************************/
 	//if not history cmd do this -- history shouldn't added and printed in the history list 
 	if (strcmp(cmd, "history")) 
@@ -81,26 +56,22 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 		}
 		else
 		{			
-			if (!strcmp(args[1], "-"))   	      	   //change to prev directiry
+			if (!strcmp(args[1], "-"))  //change to prev directiry
 			{	
-				//printf("\n%s\n1\n",cd_prev); //debug
 				if(cd_prev != NULL)
 				{
 					char* temp_dir = getcwd(pwd, MAX_LINE_SIZE);
 					chdir(cd_prev);
 				  	strcpy(cd_prev,temp_dir) ;
-				  	//cd_prev = temp_dir;
 				}
 			}
 			else  	
 			{	
-				//printf("\n%s\n3\n",cd_prev); //debug
 				char* temp_dir = getcwd(pwd, MAX_LINE_SIZE);
-				if((chdir(args[1]))) 			// chdir return 0 for success //need-to see error code ?
+				if((chdir(args[1]))) 	// chdir return 0 for success
 				perror("smash error: > “path” - path not found");
 				else
 				strcpy(cd_prev,temp_dir);
-				//printf("\n%s\n4\n",cd_prev); //debug
 			}	
 		}	
 			
@@ -111,7 +82,7 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 	{
 		if(num_arg !=0)
 		{
-			illegal_cmd = TRUE ;  //illegal input
+			illegal_cmd = TRUE ;
 		}
 		else 
 		{	
@@ -121,15 +92,14 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 		
 	}
 	
-	else if (!strcmp(cmd, "jobs"))  //this function print 2D array ? no changed to list type
+	else if (!strcmp(cmd, "jobs"))  //this function print jobs list
 	{
  		if(num_arg !=0)
 		{
-			illegal_cmd = TRUE ;  //illegal input
+			illegal_cmd = TRUE ;
 		}
 		else 
 		{	
-			//printf("111");
 			print_jobs(jobs);
 		}
 	}
@@ -138,7 +108,7 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 	{
 		if(num_arg !=0)
 		{
-			illegal_cmd = TRUE ; //illegal input
+			illegal_cmd = TRUE ;
 		}
 		else 
 		{
@@ -178,25 +148,22 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 			else
 			{ 
 				job_pid = job_elem->pid ;
+				printf("smash > signal SIGCONT was sent to pid %d/n" , job_pid);
 				send_job_to_fg(jobs , job_pid);
-				if(kill(job_pid , SIGCONT) == 0) 
-				{
-					printf("smash > signal SIGCONT was sent to pid %d/n" , job_pid);
+                if(kill(job_pid , SIGCONT) == 0) {
+                    suspend_job_in_list(jobs, job_pid, ACTIVE);
                     waitpid (job_pid, NULL, WUNTRACED); 
 					return 0 ; 
 				}
 			}
 		}	
-		else   //num_arg == 2
-		{
+		else{   //num_arg == 2
 			job_num = atoi(args [1]) ;
-			
-			if ( (job_num > (jobs->num_of_jobs)) || job_num < 1)
-			{
-				perror("smash error: > fg job – job does not exist") ;
-				return 0 ; // dont do notthing return success
-			}
-			Pjob job = find_job_by_idx(jobs, job_num);   //getting the relevent job for the cmd
+			if ( (job_num > (jobs->num_of_jobs)) || job_num < 1){
+               			perror("smash error: > fg job – job does not exist");
+                		return 0 ; // dont do notthing return success
+            		}
+            Pjob job = find_job_by_idx(jobs, job_num);   //getting the relevent job for the cmd
 			printf("%s" , job->job_name);
 			job_pid = job->pid ;
 			
@@ -205,8 +172,9 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 			if(kill(job_pid, SIGCONT) == 0)
 			{
 				printf("smash > signal SIGCONT was sent to pid %d - correct place \n" , job_pid);
-                waitpid (job_pid, NULL, WNOHANG);
-				waitpid (job_pid, NULL, WUNTRACED);  // todo: change it according to external
+                //waitpid (job_pid, NULL, WNOHANG);
+                suspend_job_in_list(jobs, job_pid, ACTIVE);
+				waitpid (job_pid, NULL, WUNTRACED);
                 return 0; 
 			}
 		}
@@ -230,10 +198,10 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 			else
 			{
 				job_pid = job->pid ;
+				printf("smash > signal SIGCONT was sent to pid %d" , job_pid);
 				send_job_to_bg(jobs , job_pid);
-				if(kill(job_pid , SIGCONT) == 0)
-				{
-					printf("smash > signal SIGCONT was sent to pid %d" , job_pid); 
+                if(kill(job_pid , SIGCONT) == 0){
+                    suspend_job_in_list(jobs, job_pid, ACTIVE);
 					return 0 ; 
 				}
 				else 
@@ -255,10 +223,10 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 			Pjob job_elem = find_job_by_idx(jobs , job_num);   //getting the relevent job for the cmd
 			printf("%s" , job_elem->job_name);
 			job_pid = job_elem->pid ;
-			
+			printf("smash > signal SIGCONT was sent to pid %d" , job_pid);
 			if(kill(job_pid , SIGCONT) == 0)
 			{
-				printf("smash > signal SIGCONT was sent to pid %d" , job_pid);
+				suspend_job_in_list(jobs, job_pid, ACTIVE);
 				return 0 ; 
 			}
 			else
@@ -286,20 +254,22 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 				{
 						Pjob job_node = find_job_by_idx(jobs,i) ;
 						job_pid = job_node -> pid  ;
-						if (kill (job_pid, SIGTERM) == 0)  // SIGTERM = 15 ? //success to SIGTERM the pid
+						if (kill (job_pid, SIGTERM) == 0)  // SIGTERM = 15  //success to SIGTERM the pid
 						{	
 							remove_job(jobs, job_pid);
 						}
 						else 
 						{
-							sleep(5); //need-to : this is llegal command ? 
+							sleep(5);
 							if (kill (job_pid, SIGTERM) != 0) //check after 5 sec to SIGTERM SUCESS again
 							{
-								kill (job_pid, SIGKILL); //SIGKILL = 9 ? 
+								kill (job_pid, SIGKILL); //SIGKILL = 9 ?
 							}
 							remove_job(jobs , job_pid);
+
 						}		
-				}					
+				}
+				exit(0);
 			}				
 	} 
 	/*************************************************/
@@ -315,12 +285,12 @@ int  pid_to_kill = target_job_for_kill -> job_pid ; */
 			int sig_num = atoi(strtok(args [1], "-" )) ; 
 			job_num = atoi(args [1]) ;
 			
-			if ( (job_num > (jobs -> num_of_jobs)) || job_num < 1)       //need-to : verify num_of_jobs method in "jobs" list
+			if ( (job_num > (jobs -> num_of_jobs)) || job_num < 1)
 			{
 				perror("smash error: > kill job – job does not exist") ;
 				return 1 ; 
 			}
-			Pjob job_node = find_job_by_idx(jobs,job_num) ;   // todo: this syntax is right ?!
+			Pjob job_node = find_job_by_idx(jobs,job_num) ;
 			job_pid = job_node -> pid ;
 			
 			if ( kill (job_pid, sig_num) == -1 ) // kill return 0 for success , -1 for failure ; 
@@ -356,7 +326,6 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString) // todo: add the job to a
 {
     int status; 
 	int pid;
-	//if(DEBUG)printf("external **** debug\n"); //debug
     	switch(pid = fork()) 
 	{
     		case -1: 
@@ -371,10 +340,9 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString) // todo: add the job to a
 					break;
 			        
 			default:
-                if(!kill(pid,0)) add_job(jobs, cmdString, pid, ACTIVE);               
-                waitpid(pid, &status, WUNTRACED);
-                
-
+               if(!kill(pid,0)) add_job(jobs, cmdString, pid, ACTIVE);               
+               waitpid(pid, &status, WUNTRACED);
+               
 	}
 }
 //**************************************************************************************
@@ -396,39 +364,30 @@ int ExeComp(Plist jobs,char* lineSize)
 								|| (strstr(lineSize, "*")) || (strstr(lineSize, "?")) 
 								|| (strstr(lineSize, ">>")) || (strstr(lineSize, "|&")))
     {
-    	if(DEBUG)printf("comp **** debug\n"); //debug
 		switch (pid = fork())
 		{
 			case -1 : 
 				perror("fork failed");
-				//todo : return? exit ? what should i do ? 
 				return -1;
-				break;
 			case 0 : //child process 
 				setpgrp(); 
 				args [ 0 ] = "csh";
 				args [ 1 ] = "-f";
 				args [ 2 ] = "-c";
 				args [ 3 ] = lineSize;
-				args [ 4 ] = "/0"; // NULL
-				
-				/*execute the command using the c shell
-				-p Uses the PATH environment variable to find the file named in the file argument to be executed 
-				--execvp return value is -1 and errno just in case of failure ,never return in success*/
+				args [ 4 ] = NULL; // NULL
+
+                /************************/  	
 				execvp (args[0], args);
-				
+				/************************/
+
 				//only if exec failed do this 
 				perror("smash error: > failed to execute by execvp\n");
-				//todo : return? exit ? what should i do ? 
+                exit(1);
 				break;
-			
-			//todo:
-			/*if i understand this right in the default in need to add the job for the jobs list
-			the new job ruuning in the fg with the current pid from the pid = fork()
-			*/
 			default :  
-				add_job(jobs, lineSize, pid, ACTIVE) ; //todo: who need to enter this to jobs list ? i need to do add_job ?
-				waitpid(pid,NULL, WUNTRACED); 
+				if(!kill(pid,0)) add_job(jobs, lineSize, pid, ACTIVE);               
+                waitpid(pid,NULL, WUNTRACED); 
 				return 0 ;
 	    }
     }
@@ -440,31 +399,26 @@ int ExeComp(Plist jobs,char* lineSize)
 // Parameters: command string, pointer to jobs
 // Returns: 0- BG command -1- if not
 //**************************************************************************************
-int BgCmd(char* lineSize, Plist jobs)
-{
+int BgCmd(char* lineSize, Plist jobs){
 	int pid = 0;
 	char* cmd;
 	char* delimiters = " \t\n";
 	char *args[MAX_ARG];
 
-	if (lineSize[strlen(lineSize)-2] == '&')
-	{
-		if(DEBUG)printf("bgcmd ****\n"); //debug
+	if (lineSize[strlen(lineSize)-2] == '&'){
 		lineSize[strlen(lineSize)-2] = '\0';
 		int i = 0, num_arg = 0;
 		cmd = strtok(lineSize, delimiters);
-		if (NULL == cmd) {return 0;}
+		if (NULL == cmd) return 0;
 		args[0] = cmd;
-		
-		for (i=1; i<MAX_ARG; i++)
-		{
+		/****************************************/
+		for (i=1; i<MAX_ARG; i++){
 			args[i] = strtok(NULL, delimiters); 
 			if (args[i] != NULL) 
 			num_arg++; 
 		}
-	
-		switch (pid = fork())
-		{
+	    /****************************************/
+		switch (pid = fork()){
 			case -1 :
 				perror("fork failed");
 				break;
@@ -475,13 +429,12 @@ int BgCmd(char* lineSize, Plist jobs)
 				perror("smash error: > failed to execute by execvp\n");
                 exit(1);    
 				break;
-			default :
-				add_job(jobs, lineSize, pid, ACTIVE) ;  //without waitpid --its bg cmdi
+
+            default :
+                add_job(jobs, lineSize, pid, ACTIVE);              
                 send_job_to_bg(jobs, pid);                
 				return 0 ; 
-	
 		}
-
 	}
 	return -1;
 }
