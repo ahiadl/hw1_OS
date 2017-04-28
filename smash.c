@@ -16,7 +16,6 @@ main file. This file contains the main function of smash
 char* L_Fg_Cmd;
 Plist jobs;  //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
 char lineSize[MAX_LINE_SIZE];
-job fg_job;
 //**************************************************************************************
 // function name: main
 // Description: main function of smash. get command from user and calls command functions
@@ -51,11 +50,7 @@ int main(int argc, char *argv[])
 
 	/************************************/
 	// Init globals 
-    //reset_job(&cur_job); 
     jobs = init_list();
-    //reset_job(fg_job);
-    //add_job(jobs, "test", 100, ACTIVE);
-    //send_job_to_bg(jobs, 100);
 
 	L_Fg_Cmd =(char*)malloc(sizeof(char)*(MAX_LINE_SIZE+1));
 	if (L_Fg_Cmd == NULL) 
@@ -65,7 +60,7 @@ int main(int argc, char *argv[])
     	while (1)
     	{
 	 	printf("smash > ");
-		fgets(lineSize, MAX_LINE_SIZE, stdin);
+        fgets(lineSize, MAX_LINE_SIZE, stdin);
 		strcpy(cmdString, lineSize);    	
 		cmdString[strlen(lineSize)-1]='\0';
 					// perform a complicated Command

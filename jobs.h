@@ -2,7 +2,7 @@
 #include <string.h>
 #include "time.h"
 
-#define DEBUG 1 
+#define DEBUG 0 
 
 typedef struct {
     char* job_name; //TODO: dynamic allocation of pointed memory
@@ -35,8 +35,8 @@ enum {
 };
 
 enum {
-    FAILURE =  0,
-    SUCCESS = -1,
+    FAILURE = -1,
+    SUCCESS =  0,
 };
 
 typedef struct {
@@ -63,7 +63,7 @@ Pjob init_job (int name_length);
 Pnode init_node ();
 void add_job(Plist list_inst, char* name, int pid, int suspended);
 void align_idx(Plist list_inst);
-int remove_job(Plist list_inst, int pid);
+void remove_job(Plist list_inst, int pid);
 Pjob get_last_suspended(Plist list_inst);
 Pjob get_last_job (Plist list_inst);
 void print_jobs(Plist list_inst);

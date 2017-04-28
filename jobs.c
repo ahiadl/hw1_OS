@@ -150,20 +150,18 @@ void align_idx(Plist list_inst){
     while(cur_node != NULL); 
 }
 
-int remove_job(Plist list_inst, int pid){ //TODO: check if pid correct
+void remove_job(Plist list_inst, int pid){ //TODO: check if pid correct
     nil nil_res = find_node(list_inst, pid);
-    //if(DEBUG) print_job(nil_res.cur_node->job_elem);
+    if(DEBUG) print_job(nil_res.cur_node->job_elem);
     if (nil_res.cur_node == NULL){
         if(DEBUG) printf("failed to find node\n");
-        return FAILURE;
+        return;
     }
    /***************repairing the list **********************/ 
     if(list_inst->num_of_jobs == 1 ){ //last job in list
         list_inst->first_node = NULL;
         list_inst->last_node  = NULL;
     }else{ //last or first job in list
-        if(DEBUG) printf("going_to_remove: ");
-        if(DEBUG) print_job(nil_res.cur_node->job_elem);
         if (nil_res.cur_node->job_elem->idx == 1)                                                              list_inst->first_node   = nil_res.next_node;
         if (nil_res.cur_node->job_elem->idx == list_inst->num_of_jobs)                                         list_inst->last_node    = nil_res.prev_node;
         if (nil_res.cur_node->job_elem->idx > 1 && nil_res.cur_node->job_elem->idx <= list_inst->num_of_jobs)  nil_res.prev_node->next = nil_res.next_node;
@@ -177,8 +175,6 @@ int remove_job(Plist list_inst, int pid){ //TODO: check if pid correct
 
     align_idx(list_inst);
     list_inst->num_of_jobs--;
-    
-    return SUCCESS;
 }
 
 Pjob get_last_suspended(Plist list_inst){
@@ -186,17 +182,17 @@ Pjob get_last_suspended(Plist list_inst){
     int idx = list_inst->num_of_jobs;
     Pjob cur_job;
     int found = 0;
-    printf("inside get last suspended for %d jobs\n",idx);
+    if(DEBUG) printf("inside get last suspended for %d jobs\n",idx);
     while (!found && (idx>0)){ //TODO: think again of stop conditions
         cur_job = find_job_by_idx(list_inst, idx);
-        printf("currently checking: ");
+        if(DEBUG) printf("currently checking: ");
         if(DEBUG) print_job(cur_job);
         found = (SUSPENDED == cur_job->suspended);
         idx--;
     }
     if(!found) return NULL;
-    printf("found: ");
-     if(DEBUG) print_job(cur_job);
+    if(DEBUG) printf("found: ");
+    if(DEBUG) print_job(cur_job);
 
     return cur_job;
 }
@@ -207,7 +203,7 @@ Pjob get_last_job (Plist list_inst){
 
 void print_job (Pjob job_inst){
     if (job_inst == NULL) {
-        printf("nothing to print\n");
+        if(DEBUG) printf("nothing to print\n");
         return;
     }
     if (SUSPENDED == job_inst->suspended) printf ("[%d] %s %d %ld secs (Stopped)\n",job_inst->idx, job_inst->job_name, job_inst->pid, (time(NULL) - job_inst->start_time));
@@ -262,8 +258,8 @@ void send_job_to_fg (Plist list_inst, int pid){
 }
 
 int get_fg_job_pid (Plist list_inst){
-       printf("inside get_fg_job_pid: \n");
-       printf("num of elems in list: %d \n", list_inst->num_of_jobs);
+       if(DEBUG) printf("inside get_fg_job_pid: \n");
+       if(DEBUG) printf("num of elems in list: %d \n", list_inst->num_of_jobs);
        if (list_inst->first_node == NULL) return 0;
        nil nodes; 
        int found = 0;
@@ -271,9 +267,9 @@ int get_fg_job_pid (Plist list_inst){
        nodes.prev_node = NULL;
        nodes.next_node = nodes.cur_node->next;
        while(!found && (nodes.cur_node != NULL)) {
-           print_job(nodes.cur_node->job_elem);
+           if(DEBUG)print_job(nodes.cur_node->job_elem);
            found = (FG == nodes.cur_node->job_elem->bg_fg);
-           printf("found: %d\n", found);
+           if(DEBUG) printf("found: %d\n", found);
            if(found) continue;
            nodes.prev_node = nodes.cur_node;
            nodes.cur_node  = nodes.cur_node->next;
@@ -281,8 +277,8 @@ int get_fg_job_pid (Plist list_inst){
            
        }
        if (nodes.cur_node == NULL) return 0;
-       printf("The returned job is: \n");
-       print_job(nodes.cur_node->job_elem);
+       if(DEBUG) printf("The returned job is: \n");
+       if(DEBUG) print_job(nodes.cur_node->job_elem);
        return nodes.cur_node->job_elem->pid;
    }
 
